@@ -1,33 +1,102 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+
+        tabBarActiveTintColor: "#2563eb",
+        tabBarInactiveTintColor: "#888",
+
+        tabBarStyle: {
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 8,
+          borderTopWidth: 0,
+          elevation: 10,
+          backgroundColor: "#ffffff",
+        },
+
+        tabBarItemStyle: {
+          borderRadius: 12,
+          marginHorizontal: 5,
+        },
+
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="Yarn"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Yarn",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name="cut-outline"
+              size={focused ? 26 : 22}
+              color={color}
+            />
+          ),
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="Production"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Production",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name="settings-outline"
+              size={focused ? 26 : 22}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="Final"
+        options={{
+          title: "Final",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name="calculator-outline"
+              size={focused ? 26 : 22}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="History"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name="time-outline"
+              size={focused ? 26 : 22}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="Settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name="person-outline"
+              size={focused ? 26 : 22}
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>

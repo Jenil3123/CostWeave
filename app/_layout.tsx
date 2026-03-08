@@ -1,31 +1,14 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Stack } from "expo-router";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function HomeScreen() {
+export default function RootLayout() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Weaving App</Text>
-      <Text style={styles.subtitle}>
-        Welcome to your startup 🚀
-      </Text>
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#aaa",
-    marginTop: 10,
-  },
-});
