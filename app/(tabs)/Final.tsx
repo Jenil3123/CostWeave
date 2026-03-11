@@ -1,9 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCost } from "../../context/CostContext";
 
-/* -------- Helper -------- */
+/* -------- Helper Function -------- */
 
 const formatCurrency = (num: number) => {
   return new Intl.NumberFormat("en-IN").format(num);
@@ -13,16 +26,89 @@ export default function Final() {
 
   const router = useRouter();
 
-  /* -------- Receive values from previous tabs -------- */
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
-  const { yarnCost, manufacturingCost } = useLocalSearchParams();
+  /* -------- Modal State -------- */
 
-  const yarn = Number(yarnCost) || 0;
-  const manufacturing = Number(manufacturingCost) || 0;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [fabricName, setFabricName] = useState("");
+  const [notes, setNotes] = useState("");
+  const [errorText, setErrorText] = useState("");
+
+  /* -------- Get costs from global context -------- */
+
+  const { yarnCost, manufacturingCost } = useCost();
 
   /* -------- Final Calculation -------- */
 
-  const finalPrice = yarn + manufacturing;
+  const finalPrice = yarnCost + manufacturingCost;
+
+  /* -------- Open Save Modal -------- */
+
+  const handleSaveCalculation = () => {
+
+    if (yarnCost === 0 || manufacturingCost === 0) {
+      Alert.alert("Missing Data", "Please calculate yarn and production cost first.");
+      return;
+    }
+
+    setModalVisible(true);
+  };
+
+  /* -------- Confirm Save -------- */
+
+  const confirmSave = async () => {
+
+    if (!fabricName.trim()) {
+      setErrorText("Please enter a fabric name");
+      return;
+    }
+
+    try {
+
+      setSaveState("saving");
+
+      const newCalculation = {
+        id: Date.now(),
+        fabricName,
+        notes,
+        yarnCost,
+        manufacturingCost,
+        finalPrice,
+        totalMeters: totalFabricProductionPerMonth,
+        date: new Date().toLocaleString()
+      };
+
+      const existingData = await AsyncStorage.getItem("fabricHistory");
+
+      let history = existingData ? JSON.parse(existingData) : [];
+
+      history.unshift(newCalculation);
+
+      await AsyncStorage.setItem(
+        "fabricHistory",
+        JSON.stringify(history)
+      );
+
+      setModalVisible(false);
+      setFabricName("");
+      setNotes("");
+      setErrorText("");
+
+      setSaveState("saved");
+
+      setTimeout(() => {
+        setSaveState("idle");
+      }, 1500);
+
+    } catch (error) {
+
+      Alert.alert("Error", "Failed to save calculation");
+      setSaveState("idle");
+
+    }
+
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -32,7 +118,7 @@ export default function Final() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Header */}
+        {/* -------- Header -------- */}
 
         <View style={styles.headerCard}>
           <Ionicons name="calculator-outline" size={22} color="#4338ca" />
@@ -44,7 +130,7 @@ export default function Final() {
           </View>
         </View>
 
-        {/* Cost Summary */}
+        {/* -------- Cost Summary -------- */}
 
         <View style={styles.card}>
 
@@ -55,14 +141,14 @@ export default function Final() {
           <View style={styles.row}>
             <Text style={styles.label}>Yarn Cost</Text>
             <Text style={styles.value}>
-              ₹ {formatCurrency(yarn)}
+              ₹ {formatCurrency(yarnCost)}
             </Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Manufacturing Cost</Text>
             <Text style={styles.value}>
-              ₹ {formatCurrency(manufacturing)}
+              ₹ {formatCurrency(manufacturingCost)}
             </Text>
           </View>
 
@@ -77,7 +163,7 @@ export default function Final() {
 
         </View>
 
-        {/* Final Price */}
+        {/* -------- Final Price Card -------- */}
 
         <View style={styles.finalCard}>
 
@@ -96,26 +182,127 @@ export default function Final() {
 
         </View>
 
-        {/* Buttons */}
+        {/* -------- Bottom Buttons -------- */}
 
         <View style={styles.bottomButtons}>
 
           <Pressable
             style={styles.backBtn}
-            onPress={() => router.back()}
+            onPress={() => router.push("/(tabs)/Production")}
           >
             <Ionicons name="arrow-back" size={18} />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
-          <Pressable style={styles.saveBtn}>
-            <Ionicons name="save-outline" size={18} color="white" />
-            <Text style={styles.saveText}>Save Calculation</Text>
+          <Pressable
+            style={styles.saveBtn}
+            onPress={handleSaveCalculation}
+            disabled={saveState === "saving"}
+          >
+
+            {saveState === "saving" && (
+              <ActivityIndicator color="white" />
+            )}
+
+            {saveState === "idle" && (
+              <>
+                <Ionicons name="save-outline" size={18} color="white" />
+                <Text style={styles.saveText}>Save Calculation</Text>
+              </>
+            )}
+
+            {saveState === "saved" && (
+              <>
+                <Ionicons name="checkmark" size={18} color="white" />
+                <Text style={styles.saveText}>Saved</Text>
+              </>
+            )}
+
           </Pressable>
 
         </View>
 
       </ScrollView>
+
+      {/* -------- Save Modal -------- */}
+
+      <Modal
+        visible={modalVisible}
+        animationType="fade"
+        transparent
+      >
+
+        <View style={styles.modalOverlay}>
+
+          <View style={styles.modalCard}>
+
+            <Text style={styles.modalTitle}>
+              Save Calculation
+            </Text>
+
+            <Text style={styles.modalSubtitle}>
+              Enter a name to identify this costing later
+            </Text>
+
+            <Text style={styles.modalLabel}>
+              Fabric Name *
+            </Text>
+
+            <TextInput
+              placeholder="e.g. Cotton 40s Poplin"
+              style={[
+                styles.modalInput,
+                errorText ? styles.inputError : null
+              ]}
+              value={fabricName}
+              onChangeText={(text) => {
+                setFabricName(text);
+                if (errorText) setErrorText("");
+              }}
+            />
+
+            {errorText ? (
+              <Text style={styles.errorText}>{errorText}</Text>
+            ) : null}
+
+            <Text style={styles.modalLabel}>
+              Notes (Optional)
+            </Text>
+
+            <TextInput
+              placeholder="Add notes..."
+              style={styles.modalInput}
+              value={notes}
+              onChangeText={setNotes}
+            />
+
+            <View style={styles.modalButtons}>
+
+              <Pressable
+                style={styles.cancelBtn}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.cancelText}>
+                  Cancel
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={styles.confirmBtn}
+                onPress={confirmSave}
+              >
+                <Text style={styles.confirmText}>
+                  Save Calculation
+                </Text>
+              </Pressable>
+
+            </View>
+
+          </View>
+
+        </View>
+
+      </Modal>
 
     </SafeAreaView>
   );
@@ -262,6 +449,84 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "600",
     marginLeft: 6
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    padding: 20
+  },
+
+  modalCard: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700"
+  },
+
+  modalSubtitle: {
+    color: "#6b7280",
+    marginBottom: 16,
+    marginTop: 4
+  },
+
+  modalLabel: {
+    fontWeight: "600",
+    marginTop: 10
+  },
+
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 6
+  },
+
+  inputError: {
+    borderColor: "#ef4444"
+  },
+
+  errorText: {
+    color: "#ef4444",
+    fontSize: 13,
+    marginTop: 4
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20
+  },
+
+  cancelBtn: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10
+  },
+
+  cancelText: {
+    fontWeight: "600",
+    color: "#374151"
+  },
+
+  confirmBtn: {
+    backgroundColor: "#059669",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10
+  },
+
+  confirmText: {
+    color: "white",
+    fontWeight: "600"
   }
 
 });

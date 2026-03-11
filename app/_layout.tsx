@@ -1,20 +1,25 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { CostProvider } from "../context/CostContext";
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
+    <CostProvider>
 
-      {/* Global Status Bar for whole app */}
-      <StatusBar style="dark" backgroundColor="#ffffff" />
+      <SafeAreaProvider>
 
-      <SafeAreaView style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </SafeAreaView>
+        {/* Global Status Bar for whole app */}
+        <StatusBar style="dark" backgroundColor="#ffffff" />
 
-    </SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </SafeAreaView>
+
+      </SafeAreaProvider>
+
+    </CostProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Keyboard,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCost } from "../../context/CostContext";
 
 /* ---------- Helpers ---------- */
 
@@ -36,6 +38,8 @@ export default function Production() {
   const [maintenance, setMaintenance] = useState("");
   const [monthlyProduction, setMonthlyProduction] = useState("");
   const [calculated, setCalculated] = useState(false);
+
+  const { setManufacturingCost } = useCost();
 
   const electricityRef = useRef<TextInput>(null);
   const maintenanceRef = useRef<TextInput>(null);
@@ -154,6 +158,7 @@ export default function Production() {
     Keyboard.dismiss();
     setCalculated(true);
 
+    setManufacturingCost(Number(costPerMeter));
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd(true);
     }, 200);
@@ -291,6 +296,13 @@ export default function Production() {
             <Text style={styles.addText}>Add Expense</Text>
           </Pressable>
 
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Monthly Expenses</Text>
+            <Text style={styles.totalValue}>
+              ₹ {new Intl.NumberFormat("en-IN").format(totalExpenses)}
+            </Text>
+          </View>
+
         </View>
 
         {/* Production */}
@@ -370,6 +382,7 @@ export default function Production() {
                 styles.backBtn,
                 pressed && styles.buttonPressed
               ]}
+              onPress={() => router.push("/(tabs)/Yarn")}
             >
               <Ionicons name="arrow-back" size={18} color="#020617" />
               <Text style={styles.backText}>Back</Text>
@@ -380,6 +393,7 @@ export default function Production() {
                 styles.nextBtn,
                 pressed && styles.buttonPressed
               ]}
+              onPress={() => router.push("/(tabs)/Final")}
             >
               <Text style={styles.nextText}>Final Costing</Text>
               <Ionicons name="arrow-forward" size={18} color="white" />
@@ -456,6 +470,23 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.7,
     transform: [{ scale: 0.97 }]
+  },
+
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 18,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+    paddingTop: 10
+  },
+
+  totalLabel: {
+    fontWeight: "600"
+  },
+
+  totalValue: {
+    fontWeight: "700"
   },
 
   addText: { color: "white", fontWeight: "600" },

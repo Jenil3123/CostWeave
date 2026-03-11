@@ -18,6 +18,7 @@ import {
   useFonts
 } from "@expo-google-fonts/montserrat";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -33,12 +34,15 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCost } from "../../context/CostContext";
 
 export default function Yarn({ navigation }: any) {
   const [fontsLoaded] = useFonts({
     Montserrat_800ExtraBold,
     Montserrat_500Medium
   });
+
+  const { setYarnCost } = useCost();
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const resetScale = useRef(new Animated.Value(1)).current;
@@ -210,6 +214,7 @@ export default function Yarn({ navigation }: any) {
       total
     });
 
+    setYarnCost(total);
     setShowResult(true);
   };
 
@@ -525,7 +530,7 @@ export default function Yarn({ navigation }: any) {
               <TouchableOpacity
                 style={styles.continueButton}
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate("next")}
+                onPress={() => router.push("/(tabs)/Production")}
                 onPressIn={() => {
                   Animated.spring(nextScale, {
                     toValue: 0.94,
