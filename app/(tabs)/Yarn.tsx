@@ -1,3 +1,17 @@
+/**
+ * =========================================================
+ * COSTWEAVE – Yarn Cost Calculator Screen
+ * ---------------------------------------------------------
+ * This screen calculates the yarn cost of a fabric using:
+ * - Warp Yarn parameters
+ * - Weft Yarn parameters
+ * - Fabric specifications
+ *
+ * Author: Jenil Bhingradiya
+ * Project: CostWeave
+ * =========================================================
+ */
+
 import {
   Montserrat_500Medium,
   Montserrat_800ExtraBold,
