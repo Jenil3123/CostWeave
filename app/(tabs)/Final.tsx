@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +25,11 @@ const formatCurrency = (num: number) => {
 export default function Final() {
 
   const router = useRouter();
+  useFocusEffect(
+    useCallback(() => {
+      setSaveState("idle");
+    }, [])
+  );
 
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
@@ -37,7 +42,16 @@ export default function Final() {
 
   /* -------- Get costs from global context -------- */
 
-  const { yarnCost, manufacturingCost } = useCost();
+  const {
+    yarnCost,
+    manufacturingCost,
+    totalMeters,
+    warpCount,
+    weftCount,
+    fabricWidth,
+    totalEnds,
+    ppi
+  } = useCost();
 
   /* -------- Final Calculation -------- */
 
@@ -70,36 +84,60 @@ export default function Final() {
 
       const newCalculation = {
         id: Date.now(),
+
         fabricName,
         notes,
+
+        /* Yarn Tab Data */
+        warpCount,
+        weftCount,
+        fabricWidth,
+        totalEnds,
+        ppi,
+
+        /* Costing */
         yarnCost,
         manufacturingCost,
+        totalCost: yarnCost + manufacturingCost,
         finalPrice,
-        totalMeters: totalFabricProductionPerMonth,
+
+        /* Production */
+        totalMeters,
+
         date: new Date().toLocaleString()
       };
 
       const existingData = await AsyncStorage.getItem("fabricHistory");
 
-      let history = existingData ? JSON.parse(existingData) : [];
+      let history: any[] = [];
 
-      history.unshift(newCalculation);
+      if (existingData) {
+        try {
+          history = JSON.parse(existingData);
+        } catch {
+          history = [];
+        }
+      }
+      /* Add new calculation at top */
+      const updatedHistory = [newCalculation, ...history];
 
+      /* Save history */
       await AsyncStorage.setItem(
         "fabricHistory",
-        JSON.stringify(history)
+        JSON.stringify(updatedHistory)
       );
 
       setModalVisible(false);
       setFabricName("");
       setNotes("");
       setErrorText("");
-
       setSaveState("saved");
 
-      setTimeout(() => {
-        setSaveState("idle");
-      }, 1500);
+      // Immediately go to History tab
+      router.push({
+        pathname: "/(tabs)/History",
+        params: { highlightId: newCalculation.id }
+      });
 
     } catch (error) {
 
@@ -280,7 +318,10 @@ export default function Final() {
 
               <Pressable
                 style={styles.cancelBtn}
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false);
+                  setSaveState("idle");
+                }}
               >
                 <Text style={styles.cancelText}>
                   Cancel

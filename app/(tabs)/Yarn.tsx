@@ -42,7 +42,14 @@ export default function Yarn({ navigation }: any) {
     Montserrat_500Medium
   });
 
-  const { setYarnCost } = useCost();
+  const {
+    setYarnCost,
+    setWarpCount: setWarpCountGlobal,
+    setWeftCount: setWeftCountGlobal,
+    setFabricWidth: setFabricWidthGlobal,
+    setTotalEnds: setTotalEndsGlobal,
+    setPpi: setPpiGlobal
+  } = useCost();
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const resetScale = useRef(new Animated.Value(1)).current;
@@ -214,7 +221,16 @@ export default function Yarn({ navigation }: any) {
       total
     });
 
+    /* Save values to global context FIRST */
     setYarnCost(total);
+
+    setWarpCountGlobal(Number(warpCount));
+    setWeftCountGlobal(Number(weftCount));
+    setFabricWidthGlobal(Number(fabricWidth));
+    setTotalEndsGlobal(Number(totalEnds));
+    setPpiGlobal(Number(ppi));
+
+    /* Then show result */
     setShowResult(true);
   };
 

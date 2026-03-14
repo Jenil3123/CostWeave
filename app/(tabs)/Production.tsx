@@ -39,7 +39,7 @@ export default function Production() {
   const [monthlyProduction, setMonthlyProduction] = useState("");
   const [calculated, setCalculated] = useState(false);
 
-  const { setManufacturingCost } = useCost();
+  const { setManufacturingCost, setTotalMeters } = useCost();
 
   const electricityRef = useRef<TextInput>(null);
   const maintenanceRef = useRef<TextInput>(null);
@@ -159,7 +159,7 @@ export default function Production() {
     setCalculated(true);
 
     setManufacturingCost(Number(costPerMeter));
-    setTimeout(() => {
+    setTotalMeters(production); setTimeout(() => {
       scrollViewRef.current?.scrollToEnd(true);
     }, 200);
   };
